@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend Production Readiness - Complete Implementation
 
-## Getting Started
+## Quick Start
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+
+- npm or pnpm
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Setup
+
+1. **Clone and install dependencies**
+   ```bash
+   git clone <repo>
+   cd frontend-prod-ready
+   npm install
+   ```
+
+2. **Configure environment**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. **Run development server**
+   ```bash
+   npm run dev
+   ```
+
+   Access at `http://localhost:3000`
+
+---
+
+## Environment Configuration
+
+### Why `NEXT_PUBLIC_` Prefix?
+
+The `NEXT_PUBLIC_` prefix in Next.js makes environment variables available to the browser. Unlike regular environment variables, these are baked into the client-side JavaScript bundle and visible to anyone.
+
+### What Must NEVER Be Stored in Frontend Env Files
+
+1. **API Keys** - Private tokens for external services
+2. **Database Credentials** - Connection strings, passwords
+3. **Private Tokens** - JWT secrets, signing keys
+4. **Sensitive Secrets** - Encryption keys, private keys
+5. **Internal URLs** - Internal service endpoints
+6. **PII** - Personal identifying information defaults
+
+**All sensitive data should be:**
+- Stored in secure backend services
+- Never exposed to the client
+- Kept in server-only environment files (not prefixed)
+
+### Configuration Files
+
+#### `.env.example`
+```
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_ENV=development
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### `.env.local` (do not commit)
+Create locally by copying `.env.example` and customizing per machine.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Differences
 
-## Learn More
+### Development
+```
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_ENV=development
+```
+- Local backend running on port 3001
+- Verbose console logging enabled
+- No CORS restrictions (typically)
+- Fast reload on file changes
+- Detailed error messages
 
-To learn more about Next.js, take a look at the following resources:
+### Staging
+```
+NEXT_PUBLIC_API_URL=https://staging-api.example.com
+NEXT_PUBLIC_ENV=staging
+```
+- Points to staging backend environment
+- Used for QA and pre-production testing
+- CORS properly configured
+- Monitoring enabled
+- Similar to production but with more lenient security
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Production
+```
+NEXT_PUBLIC_API_URL=https://api.example.com
+NEXT_PUBLIC_ENV=production
+```
+- Points to production backend
+- HTTPS enforced
+- Strict CORS policies
+- No verbose logging
+- Error messages sanitized (no internal details)
+- Performance optimized
+- Security headers configured
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
