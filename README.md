@@ -339,6 +339,115 @@ POST /api/auth/verify
 
 ---
 
+## Password Reset Flow
+
+Complete two-step password reset process with email request and token-based confirmation.
+
+### 5.1 Forgot Password
+
+Route: `/forgot-password`
+
+#### Features
+
+✓ Email submission form  
+✓ Input validation (email format)  
+✓ Loading state during API call  
+✓ Success message: "Please check your email to reset your password"  
+✓ Error handling with user-friendly messages  
+✓ "Back to Login" navigation
+
+#### How It Works
+
+1.  User enters email address
+2.  Submits form → POST to `/api/auth/password-reset-request`
+3.  Shows loading spinner (1s delay)
+4.  Success: Displays confirmation message with email address
+5.  Error: Shows error message inline
+
+#### Testing
+
+✅ Valid Email:
+
+`http://localhost:3000/forgot-password Enter: test@example.com`
+
+→ Loading → Success message → "Back to Login" button
+
+❌ Invalid Email Format:
+
+`Enter: notanemail`
+
+→ Frontend validation error
+
+❌ Empty Email:
+
+`Click submit without entering email`
+
+→ "Please enter your email address"
+
+❌ Random Errors (15% chance):
+
+`Submit multiple times to trigger API failures`
+
+---
+
+### 5.2 Reset Password Confirmation
+
+Route: `/reset-password?token=xxxx`
+
+#### Features
+
+✓ Token extraction from URL query parameters  
+✓ New password input field  
+✓ Confirm password input field  
+✓ Frontend validation (password match + length)  
+✓ Loading state during submission  
+✓ Success message with auto-redirect to login (3s)  
+✓ Error handling for invalid/expired tokens
+
+#### How It Works
+
+1.  User clicks reset link from email → `/reset-password?token=xxxxx`
+2.  Page extracts token from URL automatically
+3.  User enters new password (min 8 chars) twice
+4.  Frontend validates: passwords match + length requirement
+5.  Submits → POST to `/api/auth/password-reset-confirm`
+6.  Success: Confirmation message → Auto-redirect to `/login` after 3s
+7.  Error: Shows error message
+
+#### Testing
+
+✅ Valid Reset (Success Flow):
+
+`http://localhost:3000/reset-password?token=validtoken123456 New Password: MyNewPass123 Confirm Password: MyNewPass123`
+
+→ Loading → Success → Redirects to login after 3s
+
+❌ Passwords Don't Match:
+
+`New Password: Password123 Confirm Password: DifferentPass`
+
+→ Frontend error: "Passwords do not match"
+
+❌ Password Too Short:
+
+`New Password: short Confirm Password: short`
+
+→ Frontend error: "Password must be at least 8 characters long"
+
+❌ Invalid Token:
+
+`http://localhost:3000/reset-password?token=invalid`
+
+→ API error: "Invalid or expired reset token"
+
+❌ Missing Token:
+
+`http://localhost:3000/reset-password`
+
+→ Immediate error message
+
+---
+
 ## Complete Test Scenarios
 
 ### Dashboard Testing
@@ -358,3 +467,29 @@ POST /api/auth/verify
 - **Missing token:** `http://localhost:3000/verify`  
   → Immediate error message
 - **Random errors:** Refresh multiple times to trigger 20% failure rate
+
+## Password Reset Flow Testing
+
+Forgot Password (`/forgot-password`):
+
+- Valid email: Enter `test@example.com`  
+  → Loading → Success message → "Check your email" confirmation
+- Invalid format: Enter `notanemail`  
+  → Validation error: "Invalid email format"
+- Empty email: Submit without entering email  
+  → Error: "Email is required"
+- Random errors: Submit multiple times to trigger 15% API failure rate
+
+Reset Password Confirmation (`/reset-password`):
+
+- Valid reset: `http://localhost:3000/reset-password?token=validtoken123456`  
+  Enter matching passwords (8+ chars) → Loading → Success → Auto-redirects to login after 3s
+- Passwords don't match: Enter different passwords in each field  
+  → Frontend error: "Passwords do not match"
+- Password too short: Enter password < 8 characters  
+  → Frontend error: "Password must be at least 8 characters long"
+- Invalid token: `http://localhost:3000/reset-password?token=invalid`  
+  → API error: "Invalid or expired reset token"
+- Missing token: `http://localhost:3000/reset-password`  
+  → Immediate error: "Invalid reset link"
+- Random errors: Submit valid form multiple times to trigger 15% failure rate
